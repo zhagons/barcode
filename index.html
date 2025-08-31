@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>条码与二维码生成器</title>
+    <script src="JsBarcode.all.min.js"></script>
+    <script src="qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: #3498db;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f1f1f1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: #3498db;
+            transition: all 0.3s;
+            transform: translateX(-50%);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #3498db;
+        }
+
+        .tab-button.active::after {
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .form-inputs {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .preview-container {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .color-inputs {
+            display: flex;
+            gap: 15px;
+        }
+
+        .color-inputs>div {
+            flex: 1;
+        }
+
+        input[type="color"] {
+            height: 45px;
+            padding: 3px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .preview {
+            text-align: center;
+            margin-top: 10px;
+            padding: 25px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        #barcode-preview,
+        #qrcode-preview {
+            max-width: 100%;
+            max-height: 250px;
+        }
+
+        .download-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .hint {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+
+            header {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>条码与二维码生成器</h1>
+            <p class="description">快速生成自定义的条形码和二维码</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="barcode">条形码</button>
+            <button class="tab-button" data-tab="qrcode">二维码</button>
+        </div>
+
+        <div class="tab-content active" id="barcode-tab">
+            <div class="form-container">
+                <div class="form-inputs">
+                    <div class="input-group">
+                        <label for="barcode-data">输入内容</label>
+                        <input type="text" id="barcode-data" placeholder="输入文本或数字" value="123456789012">
+                        <p class="hint">支持数字和文本内容</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="barcode-format">条码格式</label>
+                        <select id="barcode-format">
+                            <option value="CODE128">CODE128 (通用格式)</option>
+                            <option value="EAN13">EAN-13 (商品条码)</option>
+                            <option value="EAN8">EAN-8 (缩短商品条码)</option>
+                            <option value="UPC">UPC-A (美国商品条码)</option>
+                            <option value="ITF14">ITF-14 (物流包装条码)</option>
+                            <option value="MSI">MSI (仓储管理)</option>
+                            <option value="pharmacode">Pharmacode (药品条码)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="barcode-width">线条宽度</label>
+                        <input type="number" id="barcode-width" value="2" min="1" max="5" step="0.1">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="barcode-height">条码高度</label>
+                        <input type="number" id="barcode-height" value="100" min="50" max="200">
+                    </div>
+
+                    <div class="input-group color-inputs">
+                        <div>
+                            <label for="barcode-line-color">线条颜色</label>
+                            <input type="color" id="barcode-line-color" value="#000000">
+                        </div>
+                        <div>
+                            <label for="barcode-bg-color">背景颜色</label>
+                            <input type="color" id="barcode-bg-color" value="#FFFFFF">
+                        </div>
+                    </div>
+
+                    <button class="generate-btn" id="generate-barcode">生成条形码</button>
+                </div>
+
+                <div class="preview-container">
+                    <div class="preview">
+                        <svg id="barcode-preview"></svg>
+                    </div>
+                    <button class="download-btn" id="download-barcode">下载条形码</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="qrcode-tab">
+            <div class="form-container">
+                <div class="form-inputs">
+                    <div class="input-group">
+                        <label for="qrcode-data">输入内容</label>
+                        <input type="text" id="qrcode-data" placeholder="输入文本或网址" value="https://example.com">
+                        <p class="hint">支持文本、网址、联系方式等</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="qrcode-size">二维码尺寸</label>
+                        <input type="number" id="qrcode-size" value="200" min="100" max="500">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="qrcode-margin">边距大小</label>
+                        <input type="number" id="qrcode-margin" value="1" min="0" max="4">
+                    </div>
+
+                    <div class="input-group color-inputs">
+                        <div>
+                            <label for="qrcode-dark-color">暗色模块</label>
+                            <input type="color" id="qrcode-dark-color" value="#000000">
+                        </div>
+                        <div>
+                            <label for="qrcode-light-color">亮色模块</label>
+                            <input type="color" id="qrcode-light-color" value="#FFFFFF">
+                        </div>
+                    </div>
+
+                    <button class="generate-btn" id="generate-qrcode">生成二维码</button>
+                </div>
+
+                <div class="preview-container">
+                    <div class="preview">
+                        <div id="qrcode-preview"></div>
+                    </div>
+                    <button class="download-btn" id="download-qrcode">下载二维码</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 选项卡切换功能
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有活动状态
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                // 添加当前活动状态
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // 生成条形码
+        document.getElementById('generate-barcode').addEventListener('click', generateBarcode);
+
+        function generateBarcode() {
+            const data = document.getElementById('barcode-data').value;
+            const format = document.getElementById('barcode-format').value;
+            const width = document.getElementById('barcode-width').value;
+            const height = document.getElementById('barcode-height').value;
+            const lineColor = document.getElementById('barcode-line-color').value;
+            const bgColor = document.getElementById('barcode-bg-color').value;
+
+            if (!data) {
+                alert('请输入内容');
+                return;
+            }
+
+            try {
+                JsBarcode("#barcode-preview", data, {
+                    format: format,
+                    width: width,
+                    height: height,
+                    lineColor: lineColor,
+                    background: bgColor,
+                    displayValue: true
+                });
+            } catch (error) {
+                alert('生成条形码时出错: ' + error.message);
+            }
+        }
+
+        // 下载条形码
+        document.getElementById('download-barcode').addEventListener('click', downloadBarcode);
+
+        function downloadBarcode() {
+            const svg = document.getElementById('barcode-preview');
+            if (!svg.innerHTML) {
+                alert('请先生成条形码');
+                return;
+            }
+
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = function () {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const link = document.createElement('a');
+                link.download = 'barcode.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        }
+
+        // 生成二维码
+        document.getElementById('generate-qrcode').addEventListener('click', generateQRCode);
+
+        function generateQRCode() {
+            const data = document.getElementById('qrcode-data').value;
+            const size = document.getElementById('qrcode-size').value;
+            const margin = document.getElementById('qrcode-margin').value;
+            const darkColor = document.getElementById('qrcode-dark-color').value;
+            const lightColor = document.getElementById('qrcode-light-color').value;
+
+            if (!data) {
+                alert('请输入内容');
+                return;
+            }
+
+            document.getElementById('qrcode-preview').innerHTML = '';
+
+            try {
+                // 使用QRCode.js的正确API
+
+                var opts = {
+                    errorCorrectionLevel: 'H',
+                    type: 'image/jpeg',
+                    quality: 0.3,
+                    margin: parseInt(margin),
+                    width: parseInt(size),
+                    height: parseInt(size),
+
+                    color: {
+                        dark: darkColor,
+                        light: lightColor
+                    }
+                }
+
+                QRCode.toCanvas(data, opts, function (err, canvas) {
+                    if (err) throw err
+
+
+                    var container = document.getElementById('qrcode-preview')
+                    container.appendChild(canvas)
+                })
+            } catch (error) {
+                alert('生成二维码时出错: ' + error.message);
+            }
+        }
+
+        // 下载二维码
+        document.getElementById('download-qrcode').addEventListener('click', downloadQRCode);
+
+        function downloadQRCode() {
+            const canvas = document.querySelector('#qrcode-preview canvas');
+            if (!canvas) {
+                alert('请先生成二维码');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // 页面加载时生成默认条码和二维码
+        window.onload = function () {
+            generateBarcode();
+            generateQRCode();
+        };
+    </script>
+</body>
+
+</html>
